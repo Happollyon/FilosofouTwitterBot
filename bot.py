@@ -8,9 +8,13 @@
 every 6 seconds run twitter bot funcion
 
 """
-
+from requests_oauthlib import OAuth1
+from requests.utils import quote
 from PIL import Image, ImageFont,ImageDraw,ImageOps
-import glob, os
+import glob, os, requests,random,string
+
+
+
 #This funciton creates the image to be tweeted back to the user.
 
 def createImage(text,username,userprofile,backgroundImage):
@@ -77,4 +81,60 @@ def createImage(text,username,userprofile,backgroundImage):
     return
 
 
-createImage('On Wednesday, Trump became the first US president in history to be impeached twice after the House of Representatives voted on one article of impeachment, charging him with inciting the January 6 attack on the US Capitol building. The next phase is for the Senate to hold a trial','fagnernunes','images/user1.jpg','images/2.jfif')
+#createImage('On Wednesday, Trump became the first US president in history to be impeached twice after the House of Representatives voted on one article of impeachment, charging him with inciting the January 6 attack on the US Capitol building. The next phase is for the Senate to hold a trial','fagnernunes','images/user1.jpg','images/2.jfif')
+
+def createSignature(consumer_secret,oauth_token_secret):
+    signing_key = quote(consumer_secret,safe = '')+'&'+quote(oauth_token_secret,safe = '')
+    
+    return signing_key
+
+
+
+def postAtweet(status,include_entities,oauth_consumer_key,oauth_nonce,oauth_signature_method,oauth_timestamp,oauth_token,oauth_version):
+    
+    url = quote('https://api.twitter.com/1.1/statuses/update.json',safe = '')
+    paramters = {quote('status',safe = ''):quote(status,safe = ''),quote('include_entities',safe = ''):quote(include_entities,safe = ''),quote('oauth_consumer_key',safe = ''):quote(oauth_consumer_key,safe = ''),quote('oauth_nonce',safe = ''):quote(oauth_nonce,safe = ''),quote('oauth_signature_method',safe = ''):quote(oauth_signature_method,safe = ''),quote('oauth_timestamp',safe = ''):quote(oauth_timestamp,safe = ''),quote('oauth_token',safe = ''):quote(oauth_token,safe = ''),quote('oauth_version',safe = ''):quote(oauth_version,safe = '')}
+
+    paramter_string=''
+    
+    for key in sorted(paramters):
+        if(key!='status'):
+            paramter_string += key+'='+paramters[key]+'&'
+        else:
+            paramter_string += key+'='+paramters[key]
+     
+    teste = 'include_entities=true&oauth_consumer_key=xvz1evFS4wEEPTGEFPHBog&oauth_nonce=kYjzVBB8Y0ZFabxSWbWovY3uYSQ2pTgmZeNu2VS4cg&oauth_signature_method=HMAC-SHA1&oauth_timestamp=1318622958&oauth_token=370773112-GmHxMAgYyLbNEtIKZeRNFsMKPR9EyMZeS9weJAEb&oauth_version=1.0&status=Hello%20Ladies%20%2B%20Gentlemen%2C%20a%20signed%20OAuth%20request%21'
+    
+    if(paramter_string == teste):
+        print('correct')
+    else:
+        print('error')
+    signatureBaseString = 'POST&'+url+'&'+quote(paramter_string,safe='')
+    teste2='POST&https%3A%2F%2Fapi.twitter.com%2F1.1%2Fstatuses%2Fupdate.json&include_entities%3Dtrue%26oauth_consumer_key%3Dxvz1evFS4wEEPTGEFPHBog%26oauth_nonce%3DkYjzVBB8Y0ZFabxSWbWovY3uYSQ2pTgmZeNu2VS4cg%26oauth_signature_method%3DHMAC-SHA1%26oauth_timestamp%3D1318622958%26oauth_token%3D370773112-GmHxMAgYyLbNEtIKZeRNFsMKPR9EyMZeS9weJAEb%26oauth_version%3D1.0%26status%3DHello%2520Ladies%2520%252B%2520Gentlemen%252C%2520a%2520signed%2520OAuth%2520request%2521'
+    if(teste2==signatureBaseString):
+        print('correct')
+    else:
+        pring('error')
+    
+def getMentions():
+#    GET https://api.twitter.com/1.1/statuses/mentions_timeline.json?count=2&since_id=14927799
+    oauth_consumer_KEY= "uIMIjQPNpRNThpvZV0PrmtkSf"
+    oauth_consumer_secrete= "fXxuzxuM0OxaKzhgbRQ0pLvwbgCc2uPrgtwj0Q2NJZUDVgB1xx"
+    oauth_token= "1349500149396082688-RMlUZfOkdQYEHokXDXwd1Lqgzyo7jt"
+    oauth_secret_token= "uUH2yfUNDypNwikkt6WY8cC7GjrV6D1O0dVlWJyEYdEKv"
+    bearer_token= "AAAAAAAAAAAAAAAAAAAAAGUbLwEAAAAARixXM9tGdeIw0Q5MaZIbTdg8Hzk%3Defz0L9377HhZsuxDylZdJsR0uSzucGNktndyVA1LgzxYahTuLY"
+    oauth_nonce = ''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for _ in range(32))
+    print(oauth_nonce)
+    auto = OAuth1(oauth_consumer_KEY,oauth_consumer_secrete, oauth_token,oauth_secret_token )
+    #oauth_signature = getSignature()
+    #header = {'authorization':'bearer AAAAAAAAAAAAAAAAAAAAAGUbLwEAAAAARixXM9tGdeIw0Q5MaZIbTdg8Hzk%3Defz0L9377HhZsuxDylZdJsR0uSzucGNktndyVA1LgzxYahTuLY',"oauth_consumer_key":oauth_consumer_key,"User-Agent": "OAuth gem v0.4.4"}
+    mentions =  requests.get('https://api.twitter.com/1.1/statuses/mentions_timeline.json?count=2',auth=auto)
+    
+    response =  mentions.json()
+    for mention in response:
+        print(mention['in_reply_to_screen_name'])   
+
+
+
+getMentions()
+#postAtweet('Hello Ladies + Gentlemen, a signed OAuth request!','true','xvz1evFS4wEEPTGEFPHBog','kYjzVBB8Y0ZFabxSWbWovY3uYSQ2pTgmZeNu2VS4cg','HMAC-SHA1','1318622958','370773112-GmHxMAgYyLbNEtIKZeRNFsMKPR9EyMZeS9weJAEb','1.0')
