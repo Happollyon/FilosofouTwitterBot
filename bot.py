@@ -52,9 +52,9 @@ def createImage(text,username,userprofile,backgroundImage):
                     j -= 1
 
 # this section prepares user avatar
-    avatar = Image.open(requests.get(userprofile, stream=True).raw)
-    print(avatar.width,avatar.height)
-    #avatar = avatar.resize((100,100),box=None,reducing_gap=None)
+    print(userprofile)
+    avatar = Image.open(requests.get(userprofile, stream=True).raw)    
+    avatar = avatar.resize((100,100),box=None,reducing_gap=None)
     #mask = Image.open("images/mask.png")
     #mask = mask.resize((100,100),box=None,reducing_gap=None)
     #avatar = ImageOps.fit(avatar,mask.size,centering=(0.5,0.5))
@@ -115,7 +115,11 @@ def postAtweet(status,include_entities,oauth_consumer_key,oauth_nonce,oauth_sign
         print('correct')
     else:
         pring('error')
-    
+def postImage(status,in_reply_to_status_id,auth):
+    url = 'https://api.twitter.com/1.1/statuses/update.json?status='+status+'&in_reply_to_status_id='+in_reply_to_status_id
+    response = requests.get(url,auth=auth)
+    print(response)
+
 def getMentions():
 #    GET https://api.twitter.com/1.1/statuses/mentions_timeline.json?count=2&since_id=14927799
     oauth_consumer_KEY= "uIMIjQPNpRNThpvZV0PrmtkSf"
@@ -123,22 +127,23 @@ def getMentions():
     oauth_token= "1349500149396082688-RMlUZfOkdQYEHokXDXwd1Lqgzyo7jt"
     oauth_secret_token= "uUH2yfUNDypNwikkt6WY8cC7GjrV6D1O0dVlWJyEYdEKv"
     bearer_token= "Bearer AAAAAAAAAAAAAAAAAAAAAGUbLwEAAAAARixXM9tGdeIw0Q5MaZIbTdg8Hzk%3Defz0L9377HhZsuxDylZdJsR0uSzucGNktndyVA1LgzxYahTuLY"
-    oauth_nonce = ''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for _ in range(32))
-    print(oauth_nonce)
-    auto = OAuth1(oauth_consumer_KEY,oauth_consumer_secrete, oauth_token,oauth_secret_token )
-    #oauth_signature = getSignature()
-    #header = {'authorization':'bearer AAAAAAAAAAAAAAAAAAAAAGUbLwEAAAAARixXM9tGdeIw0Q5MaZIbTdg8Hzk%3Defz0L9377HhZsuxDylZdJsR0uSzucGNktndyVA1LgzxYahTuLY',"oauth_consumer_key":oauth_consumer_key,"User-Agent": "OAuth gem v0.4.4"}
-    mentions =  requests.get('https://api.twitter.com/1.1/statuses/mentions_timeline.json',auth=auto)
     
+
+    auto = OAuth1(oauth_consumer_KEY,oauth_consumer_secrete, oauth_token,oauth_secret_token )
+    mentions =  requests.get('https://api.twitter.com/1.1/statuses/mentions_timeline.json',auth=auto)   
     response =  mentions.json()
-    for mention in response:
-        print(mention['in_reply_to_screen_name'])   
+    for mention in response:   
         headers = {'Authorization':bearer_token,'content-type': 'application/json' }
         tweet= requests.get('https://api.twitter.com/2/tweets?ids='+mention['in_reply_to_status_id_str']+'&user.fields=profile_image_url&expansions=author_id', auth=auto)
         
         text = tweet.json()
         url = text['includes']['users'][0]['profile_image_url']
-        createImage(text['data'][0]['text'],mention['in_reply_to_screen_name'],url,'backgroundImage')
+        url= url.replace("normal","400x400")
+        #createImage(text['data'][0]['text'],mention['in_reply_to_screen_name'],url,'backgroundImage')
+
+        status = '@'+mention['user']['screen_name'] +' '+'@'+mention['in_reply_to_screen_name']
+        print(status)
+        postImage(status,mention['id_str'],auto)
 
 getMentions()
 #postAtweet('Hello Ladies + Gentlemen, a signed OAuth request!','true','xvz1evFS4wEEPTGEFPHBog','kYjzVBB8Y0ZFabxSWbWovY3uYSQ2pTgmZeNu2VS4cg','HMAC-SHA1','1318622958','370773112-GmHxMAgYyLbNEtIKZeRNFsMKPR9EyMZeS9weJAEb','1.0')
