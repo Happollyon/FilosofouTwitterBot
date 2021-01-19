@@ -11,8 +11,8 @@ every 6 seconds run twitter bot funcion
 from requests_oauthlib import OAuth1
 from requests.utils import quote
 from PIL import Image, ImageFont,ImageDraw,ImageOps
-import glob, os, requests,random,string
-
+import glob, os, requests,random,string,time, hashlib, hmac, base64,tweepy
+from hashlib import sha1
 
 
 #This funciton creates the image to be tweeted back to the user.
@@ -90,31 +90,59 @@ def createSignature(consumer_secret,oauth_token_secret):
 
 
 
-def postAtweet(status,include_entities,oauth_consumer_key,oauth_nonce,oauth_signature_method,oauth_timestamp,oauth_token,oauth_version):
+def postAtweet(token,oauth_consumer_secret, oauth_token_secret,status,in_reply_to_status_id,oauth_consumer_key,oauth_token):
     
-    url = quote('https://api.twitter.com/1.1/statuses/update.json',safe = '')
-    paramters = {quote('status',safe = ''):quote(status,safe = ''),quote('include_entities',safe = ''):quote(include_entities,safe = ''),quote('oauth_consumer_key',safe = ''):quote(oauth_consumer_key,safe = ''),quote('oauth_nonce',safe = ''):quote(oauth_nonce,safe = ''),quote('oauth_signature_method',safe = ''):quote(oauth_signature_method,safe = ''),quote('oauth_timestamp',safe = ''):quote(oauth_timestamp,safe = ''),quote('oauth_token',safe = ''):quote(oauth_token,safe = ''),quote('oauth_version',safe = ''):quote(oauth_version,safe = '')}
+
+# using tweepy to post a tweet 
+    auth = tweepy.OAuthHandler(oauth_consumer_key,oauth_consumer_secret)
+    auth.set_access_token(oauth_token,oauth_token_secret)
+    api = tweepy.API(auth)
+    api.update_status('teste')
+# end of tweepy    
+    include_entities = 'true'
+    oauth_nonce = ''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for _ in range(32))
+    oauth_version = '1.0'
+    oauth_signature_method = 'HMAC-SHA1'
+    oauth_timestamp = str(time.time())
+    cleanURL = 'https://api.twitter.com/1.1/statuses/update.json?status='+status+'&in_reply_to_status_id='+in_reply_to_status_id    
+    url = quote('https://api.twitter.com/1.1/statuses/update.json?status='+status+'&in_reply_to_status_id='+in_reply_to_status_id,safe = '')
+    
+    
+    paramters = {
+            quote('status',safe = ''):quote(status,safe = ''),
+            quote('include_entities',safe = ''):quote(include_entities,safe = ''),
+            quote('oauth_consumer_key',safe = ''):quote(oauth_consumer_key,safe = ''),
+            quote('oauth_nonce',safe = ''):quote(oauth_nonce,safe = ''),
+            quote('oauth_signature_method',safe = ''):quote(oauth_signature_method,safe = ''),
+            quote('oauth_timestamp',safe = ''):quote(oauth_timestamp,safe = ''),
+            quote('oauth_token',safe = ''):quote(oauth_token,safe = ''),
+            quote('oauth_version',safe = ''):quote(oauth_version,safe = '')
+            }
 
     paramter_string=''
     
     for key in sorted(paramters):
         if(key!='status'):
-            paramter_string += key+'='+paramters[key]+'&'
-        else:
             paramter_string += key+'='+paramters[key]
      
-    teste = 'include_entities=true&oauth_consumer_key=xvz1evFS4wEEPTGEFPHBog&oauth_nonce=kYjzVBB8Y0ZFabxSWbWovY3uYSQ2pTgmZeNu2VS4cg&oauth_signature_method=HMAC-SHA1&oauth_timestamp=1318622958&oauth_token=370773112-GmHxMAgYyLbNEtIKZeRNFsMKPR9EyMZeS9weJAEb&oauth_version=1.0&status=Hello%20Ladies%20%2B%20Gentlemen%2C%20a%20signed%20OAuth%20request%21'
-    
-    if(paramter_string == teste):
-        print('correct')
-    else:
-        print('error')
     signatureBaseString = 'POST&'+url+'&'+quote(paramter_string,safe='')
-    teste2='POST&https%3A%2F%2Fapi.twitter.com%2F1.1%2Fstatuses%2Fupdate.json&include_entities%3Dtrue%26oauth_consumer_key%3Dxvz1evFS4wEEPTGEFPHBog%26oauth_nonce%3DkYjzVBB8Y0ZFabxSWbWovY3uYSQ2pTgmZeNu2VS4cg%26oauth_signature_method%3DHMAC-SHA1%26oauth_timestamp%3D1318622958%26oauth_token%3D370773112-GmHxMAgYyLbNEtIKZeRNFsMKPR9EyMZeS9weJAEb%26oauth_version%3D1.0%26status%3DHello%2520Ladies%2520%252B%2520Gentlemen%252C%2520a%2520signed%2520OAuth%2520request%2521'
-    if(teste2==signatureBaseString):
-        print('correct')
-    else:
-        pring('error')
+    signing_key = oauth_consumer_secret+'&'+oauth_token_secret
+    key = bytes(signatureBaseString,'utf-8')
+    message = bytes(signatureBaseString,'utf-8')
+    digester = hmac.new(key, message, sha1).digest()
+    signaturekey = base64.urlsafe_b64encode(digester)      
+    signaturekey = signaturekey.decode('utf-8').rstrip('\n')
+    #print(token)
+    header = {'authorization':'OAuth',
+             'oauth_consumer_key':oauth_consumer_key,
+             'oauth_nonce':oauth_nonce,
+             'oauth_signature_method':oauth_signature_method,
+             'oauth_timestamp':oauth_timestamp,
+             'oauth_token':oauth_token,
+             'oauth_version':oauth_version}
+    response = requests.post(cleanURL,auth=token)
+    print(response.text)
+
 def postImage(status,in_reply_to_status_id,auth):
     url = 'https://api.twitter.com/1.1/statuses/update.json?status='+status+'&in_reply_to_status_id='+in_reply_to_status_id
     response = requests.get(url,auth=auth)
@@ -133,17 +161,16 @@ def getMentions():
     mentions =  requests.get('https://api.twitter.com/1.1/statuses/mentions_timeline.json',auth=auto)   
     response =  mentions.json()
     for mention in response:   
-        headers = {'Authorization':bearer_token,'content-type': 'application/json' }
         tweet= requests.get('https://api.twitter.com/2/tweets?ids='+mention['in_reply_to_status_id_str']+'&user.fields=profile_image_url&expansions=author_id', auth=auto)
-        
+    
         text = tweet.json()
         url = text['includes']['users'][0]['profile_image_url']
         url= url.replace("normal","400x400")
-        #createImage(text['data'][0]['text'],mention['in_reply_to_screen_name'],url,'backgroundImage')
-
+        #createImage(text['data'][0]['text'],mention['in_reply_to_screen_name'],url,'backgroundImage'               
         status = '@'+mention['user']['screen_name'] +' '+'@'+mention['in_reply_to_screen_name']
-        print(status)
-        postImage(status,mention['id_str'],auto)
-
+       
+        postAtweet(auto,oauth_consumer_secrete,oauth_secret_token,status,mention['id_str'],oauth_consumer_KEY,oauth_token)
+                
+        
 getMentions()
-#postAtweet('Hello Ladies + Gentlemen, a signed OAuth request!','true','xvz1evFS4wEEPTGEFPHBog','kYjzVBB8Y0ZFabxSWbWovY3uYSQ2pTgmZeNu2VS4cg','HMAC-SHA1','1318622958','370773112-GmHxMAgYyLbNEtIKZeRNFsMKPR9EyMZeS9weJAEb','1.0')
+#postAtweet('Hello Ladies + Gentlemen, a sigined OAuth request!','true','xvz1evFS4wEEPTGEFPHBog','kYjzVBB8Y0ZFabxSWbWovY3uYSQ2pTgmZeNu2VS4cg','HMAC-SHA1','1318622958','370773112-GmHxMAgYyLbNEtIKZeRNFsMKPR9EyMZeS9weJAEb','1.0')
