@@ -11,7 +11,7 @@ every 6 seconds run twitter bot funcion
 from requests_oauthlib import OAuth1
 from requests.utils import quote
 from PIL import Image, ImageFont,ImageDraw,ImageOps
-import glob, os, requests,random,string,time, hashlib, hmac, base64
+import glob, os, requests,random,string,time, hashlib, hmac, base64,tweepy
 from hashlib import sha1
 
 
@@ -77,8 +77,10 @@ def createImage(text,username,userprofile,backgroundImage):
     image.paste(output,(round(width*.7),round(height*.6)),output)
     image = image.convert('LA')
     #output.show()
+    print(image)
     image.show()
-    return
+    return image
+    
 
 
 #createImage('On Wednesday, Trump became the first US president in history to be impeached twice after the House of Representatives voted on one article of impeachment, charging him with inciting the January 6 attack on the US Capitol building. The next phase is for the Senate to hold a trial','fagnernunes','images/user1.jpg','images/2.jfif')
@@ -90,7 +92,17 @@ def createSignature(consumer_secret,oauth_token_secret):
 
 
 
-def postAtweet(token,oauth_consumer_secret, oauth_token_secret,status,in_reply_to_status_id,oauth_consumer_key,oauth_token):
+def postAtweet(filename,fileobj,token,oauth_consumer_secret, oauth_token_secret,status,in_reply_to_status_id,oauth_consumer_key,oauth_token):
+    
+    print(fileobj)
+# using tweepy to post a tweet 
+    auth = tweepy.OAuthHandler(oauth_consumer_key,oauth_consumer_secret)
+    auth.set_access_token(oauth_token,oauth_token_secret)
+    api = tweepy.API(auth)
+    
+    res = api.media_upload(filename,file=fileobj)
+    print(res.media_id)
+# end of tweepy    
     include_entities = 'true'
     oauth_nonce = ''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for _ in range(32))
     oauth_version = '1.0'
@@ -132,8 +144,8 @@ def postAtweet(token,oauth_consumer_secret, oauth_token_secret,status,in_reply_t
              'oauth_timestamp':oauth_timestamp,
              'oauth_token':oauth_token,
              'oauth_version':oauth_version}
-    response = requests.post(cleanURL,auth=token)
-    print(response.text)
+    #response = requests.post(cleanURL,auth=token)
+    #print(response.text)
 
 def postImage(status,in_reply_to_status_id,auth):
     url = 'https://api.twitter.com/1.1/statuses/update.json?status='+status+'&in_reply_to_status_id='+in_reply_to_status_id
@@ -158,11 +170,11 @@ def getMentions():
         text = tweet.json()
         url = text['includes']['users'][0]['profile_image_url']
         url= url.replace("normal","400x400")
-        #createImage(text['data'][0]['text'],mention['in_reply_to_screen_name'],url,'backgroundImage'               
+        fileobj = createImage(text['data'][0]['text'],mention['in_reply_to_screen_name'],url,'backgroundImage')               
         status = '@'+mention['user']['screen_name'] +' '+'@'+mention['in_reply_to_screen_name']
        
-        postAtweet(auto,oauth_consumer_secrete,oauth_secret_token,status,mention['id_str'],oauth_consumer_KEY,oauth_token)
+        postAtweet(mention['id_str'],fileobj,auto,oauth_consumer_secrete,oauth_secret_token,status,mention['id_str'],oauth_consumer_KEY,oauth_token)
                 
         
 getMentions()
-#postAtweet('Hello Ladies + Gentlemen, a sigined OAuth request!','true','xvz1evFS4wEEPTGEFPHBog','kYjzVBB8Y0ZFabxSWbWovY3uYSQ2pTgmZeNu2VS4cg','HMAC-SHA1','1318622958','370773112-GmHxMAgYyLbNEtIKZeRNFsMKPR9EyMZeS9weJAEb','1.0')
+#postAtweet('Hello Ladies + Gentlemen, a sigined OAuth request!','true','xvz1evFS4wEEPTGEFPHBog','kYjzVBB8Y0ZFabxSWbWovY3uYSQ2pTgmZeNu2VS4cg','HMAC-SHA1','1318622958','370773112-GmHxMAgYyLbNEtIKZeRNFsMKPR9EyMZeS9weJAEb','1.0'i)
