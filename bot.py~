@@ -143,7 +143,9 @@ def getMentions():
             
 
 starttime = time.time()
+i = 0
 while True:
     getMentions()
-    
-    time.sleep(60.0 - ((time.time() - starttime) % 60.0))
+    i+=1
+    print(i)
+    time.sleep(90 - ((time.time() - starttime) % 60.0))
