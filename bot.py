@@ -138,7 +138,7 @@ def getMentions():
         url= url.replace("normal","400x400")
         media_id = createImage(text['data'][0]['text'],mention['in_reply_to_screen_name'],url,'backgroundImage')               
         status = '@'+mention['user']['screen_name'] +' '+'@'+mention['in_reply_to_screen_name']
-        if mention['user']['screen_name'] != 'filosofou4' or mention['in_reply_to_screen_name']!= 'filosofou4':
+        if mention['user']['screen_name'] != 'filosofou4' and mention['in_reply_to_screen_name']!= 'filosofou4':
             postAtweet(media_id,auto,oauth_consumer_secrete,oauth_secret_token,status,mention['id_str'],oauth_consumer_KEY,oauth_token)
             
 
