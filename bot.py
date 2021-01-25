@@ -6,7 +6,6 @@ from hashlib import sha1
 
 
 #This funciton creates the image to be tweeted back to the user.
-
 def createImage(text,username,userprofile,backgroundImage):
     oauth_consumer_KEY= "uIMIjQPNpRNThpvZV0PrmtkSf"
     oauth_consumer_secrete= "fXxuzxuM0OxaKzhgbRQ0pLvwbgCc2uPrgtwj0Q2NJZUDVgB1xx"
@@ -22,15 +21,15 @@ def createImage(text,username,userprofile,backgroundImage):
     text = '"'+text+'"'
 # loads the image or creates black rectangle
 
-    #image = Image.open(backgroundImage)
-    image = Image.new("RGB",(1200,800))
+    image = Image.open(backgroundImage)
+    #image = Image.new("RGB",(1200,800))
 
 # Gets the dimensions and calculates where to place the text
     if len(text)<=195:
         font_size = 40
     else:
         font_size = 40
-    #print('chars in text: ', len(text))
+    
     width = image.width
     height = image.height
     newWidth = width*.90
@@ -58,7 +57,11 @@ def createImage(text,username,userprofile,backgroundImage):
 # this section prepares user avatar
     
     avatar = Image.open(requests.get(userprofile, stream=True).raw)    
+    avatar = avatar.convert('LA')
+    avatar = avatar.convert('RGBA')
+    avatar.show()
     avatar = avatar.resize((300,300),box=None,reducing_gap=None)
+    
     #mask = Image.open("images/mask.png")
     #mask = mask.resize((100,100),box=None,reducing_gap=None)
     #avatar = ImageOps.fit(avatar,mask.size,centering=(0.5,0.5))
@@ -71,17 +74,18 @@ def createImage(text,username,userprofile,backgroundImage):
     drawMask.ellipse((0, 0) + size, fill=255)
     output = ImageOps.fit(avatar, mask.size, centering=(0.5, 0.5))
     output.putalpha(mask)
-
+    
 # manipulates the image
     
     draw = ImageDraw.Draw(image)
 
     font = ImageFont.truetype("fonts/Fraunces-VariableFont_SOFT,WONK,opsz,wght.ttf",font_size)
     draw.text((width*.1,height*.8),username,font=font)
-    draw.text((width*.1,height*.1),newText,font=font)
-    image.paste(output,(round(width*.7),round(height*.6)),output)
+    draw.text((width*.13,height*.1),newText,font=font)
+    
+    image.paste(output,(width-334,height-347),output)
 
-    image = image.convert('LA')   
+       
     filename = ''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for _ in range(32))
     image = image.resize((600,400),Image.ANTIALIAS)
     image.save(filename+'.png')
@@ -90,7 +94,8 @@ def createImage(text,username,userprofile,backgroundImage):
     
     return [res.media_id]
     
-
+#print(2)
+#createImage('Caso eu venha a falecer, gostaria de deixar registrado aqui tambm que tenho interesse em ser doador de e tecidos.','fagnernunes11','https://pbs.twimg.com/profile_images/1251218278191640576/UpID8lrn_400x400.jpg','images/image1.png')
 
 def postAtweet(media_id,token,oauth_consumer_secret, oauth_token_secret,status,in_reply_to_status_id,oauth_consumer_key,oauth_token):
     
@@ -119,9 +124,8 @@ def getMentions():
         data = json.load(file)
         last_mention = data['last_mention']
                   
-    mentions =  requests.get('https://api.twitter.com/1.1/statuses/mentions_timeline.json?since_id='+last_mention,auth=auto)   
-    #mentions =  requests.get('https://api.twitter.com/1.1/statuses/mentions_timeline.json',auth=auto)   
-    #createImage('Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Don ec quam felis, ultricies nec, pellentesque eu, pretium quis, sem. Nulla consequat mas','12','https://pbs.twimg.com/profile_images/1349505206770393088/Q4GiRVH5_400x400.jpg','backgroundImage') 
+    mentions =  requests.get('https://api.twitter.com/1.1/statuses/mentions_timeline.json?since_id='+last_mention,auth=auto)      
+
     response =  mentions.json()
     
     for mention in reversed(response):   
@@ -147,5 +151,5 @@ i = 0
 while True:
     getMentions()
     i+=1
-    print(i)
+    
     time.sleep(90 - ((time.time() - starttime) % 60.0))
