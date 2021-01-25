@@ -59,7 +59,7 @@ def createImage(text,username,userprofile,backgroundImage):
     avatar = Image.open(requests.get(userprofile, stream=True).raw)    
     avatar = avatar.convert('LA')
     avatar = avatar.convert('RGBA')
-    avatar.show()
+    
     avatar = avatar.resize((300,300),box=None,reducing_gap=None)
     
     #mask = Image.open("images/mask.png")
@@ -140,7 +140,7 @@ def getMentions():
         text = tweet.json()
         url = text['includes']['users'][0]['profile_image_url']
         url= url.replace("normal","400x400")
-        media_id = createImage(text['data'][0]['text'],mention['in_reply_to_screen_name'],url,'backgroundImage')               
+        media_id = createImage(text['data'][0]['text'],mention['in_reply_to_screen_name'],url,'images/image1.png')               
         status = '@'+mention['user']['screen_name'] +' '+'@'+mention['in_reply_to_screen_name']
         if mention['user']['screen_name'] != 'filosofou4' and mention['in_reply_to_screen_name']!= 'filosofou4':
             postAtweet(media_id,auto,oauth_consumer_secrete,oauth_secret_token,status,mention['id_str'],oauth_consumer_KEY,oauth_token)
