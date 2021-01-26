@@ -128,23 +128,25 @@ def getMentions():
 
     response =  mentions.json()
     
-    for mention in reversed(response):   
-        tweet= requests.get('https://api.twitter.com/2/tweets?ids='+mention['in_reply_to_status_id_str']+'&user.fields=profile_image_url&expansions=author_id', auth=auto)
-        with open('test.json','r+') as file:
-            data = json.load(file)
-            #print('updated')
-            data['last_mention'] = mention['id_str']
-            file.seek(0)
-            file.write(json.dumps(data))
-            file.truncate()
-        text = tweet.json()
-        url = text['includes']['users'][0]['profile_image_url']
-        url= url.replace("normal","400x400")
-        media_id = createImage(text['data'][0]['text'],mention['in_reply_to_screen_name'],url,'images/image1.png')               
-        status = '@'+mention['user']['screen_name'] +' '+'@'+mention['in_reply_to_screen_name']
-        if mention['user']['screen_name'] != 'filosofou4' and mention['in_reply_to_screen_name']!= 'filosofou4':
-            postAtweet(media_id,auto,oauth_consumer_secrete,oauth_secret_token,status,mention['id_str'],oauth_consumer_KEY,oauth_token)
-            
+    for mention in reversed(response):
+        
+        if mention['in_reply_to_status_id_str']!=None:
+            tweet= requests.get('https://api.twitter.com/2/tweets?ids='+mention['in_reply_to_status_id_str']+'&user.fields=profile_image_url&expansions=author_id', auth=auto)
+            with open('test.json','r+') as file:
+                data = json.load(file)
+                #print('updated')
+                data['last_mention'] = mention['id_str']
+                file.seek(0)
+                file.write(json.dumps(data))
+                file.truncate()
+            text = tweet.json()
+            url = text['includes']['users'][0]['profile_image_url']
+            url= url.replace("normal","400x400")
+            media_id = createImage(text['data'][0]['text'],mention['in_reply_to_screen_name'],url,'images/image1.png')               
+            status = '@'+mention['user']['screen_name'] +' '+'@'+mention['in_reply_to_screen_name']
+            if mention['user']['screen_name'] != 'filosofou4' and mention['in_reply_to_screen_name']!= 'filosofou4':
+                postAtweet(media_id,auto,oauth_consumer_secrete,oauth_secret_token,status,mention['id_str'],oauth_consumer_KEY,oauth_token)
+                
 
 starttime = time.time()
 i = 0
