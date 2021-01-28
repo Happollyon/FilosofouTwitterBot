@@ -81,7 +81,7 @@ def createImage(text,username,userprofile,backgroundImage):
 
     font = ImageFont.truetype("fonts/Fraunces-VariableFont_SOFT,WONK,opsz,wght.ttf",font_size)
     draw.text((width*.1,height*.8),username,font=font)
-    draw.text((width*.13,height*.1),newText,font=font)
+    draw.text((184,158),newText,font=font)
     
     image.paste(output,(width-334,height-347),output)
 
@@ -91,11 +91,11 @@ def createImage(text,username,userprofile,backgroundImage):
     image.save(filename+'.png')
     res = api.media_upload(filename+'.png')
     os.remove(filename+'.png')
-    
+    image.show()    
     return [res.media_id]
     
 #print(2)
-#createImage('Caso eu venha a falecer, gostaria de deixar registrado aqui tambm que tenho interesse em ser doador de e tecidos.','fagnernunes11','https://pbs.twimg.com/profile_images/1251218278191640576/UpID8lrn_400x400.jpg','images/image1.png')
+createImage('Caso eu venha a falecer, gostaria de deixar registrado aqui tambm que tenho interesse em ser doador de e tecidos.','fagnernunes11','https://pbs.twimg.com/profile_images/1251218278191640576/UpID8lrn_400x400.jpg','images/image1.png')
 
 def postAtweet(media_id,token,oauth_consumer_secret, oauth_token_secret,status,in_reply_to_status_id,oauth_consumer_key,oauth_token):
     
@@ -129,7 +129,7 @@ def getMentions():
     response =  mentions.json()
     
     for mention in reversed(response):
-        print(mention['in_reply_to_status_id_str'])
+        
         if mention['in_reply_to_status_id_str']!=None:
             tweet= requests.get('https://api.twitter.com/2/tweets?ids='+mention['in_reply_to_status_id_str']+'&user.fields=profile_image_url&expansions=author_id', auth=auto)
             with open('test.json','r+') as file:
@@ -151,7 +151,7 @@ def getMentions():
 starttime = time.time()
 i = 0
 while True:
-    getMentions()
+    #getMentions()
     i+=1
     
     time.sleep(90 - ((time.time() - starttime) % 60.0))

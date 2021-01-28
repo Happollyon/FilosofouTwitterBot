@@ -81,7 +81,7 @@ def createImage(text,username,userprofile,backgroundImage):
 
     font = ImageFont.truetype("fonts/Fraunces-VariableFont_SOFT,WONK,opsz,wght.ttf",font_size)
     draw.text((width*.1,height*.8),username,font=font)
-    draw.text((width*.13,height*.1),newText,font=font)
+    draw.text((184,158),newText,font=font)
     
     image.paste(output,(width-334,height-347),output)
 
@@ -91,7 +91,7 @@ def createImage(text,username,userprofile,backgroundImage):
     image.save(filename+'.png')
     res = api.media_upload(filename+'.png')
     os.remove(filename+'.png')
-    
+        
     return [res.media_id]
     
 #print(2)
