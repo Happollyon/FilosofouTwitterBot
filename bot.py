@@ -18,7 +18,7 @@ def createImage(text,username,userprofile,backgroundImage):
     api = tweepy.API(auth)
     
     username = '@' +username 
-    text = '"'+text+'"'
+    
 # loads the image or creates black rectangle
 
     image = Image.open(backgroundImage)
