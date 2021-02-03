@@ -4,7 +4,10 @@ from PIL import Image, ImageFont,ImageDraw,ImageOps
 import glob, os, requests,random,string,time, hashlib, hmac, base64,tweepy,json
 from hashlib import sha1
 
-
+"""
+maybe it should comment to the tweet only 
+include emojies
+"""
 #This funciton creates the image to be tweeted back to the user.
 def createImage(text,username,userprofile,backgroundImage):
     oauth_consumer_KEY= "uIMIjQPNpRNThpvZV0PrmtkSf"
@@ -18,7 +21,7 @@ def createImage(text,username,userprofile,backgroundImage):
     api = tweepy.API(auth)
     
     username = '@' +username 
-    text = '"'+text+'"'
+    
 # loads the image or creates black rectangle
 
     image = Image.open(backgroundImage)
@@ -79,9 +82,10 @@ def createImage(text,username,userprofile,backgroundImage):
     
     draw = ImageDraw.Draw(image)
 
-    font = ImageFont.truetype("fonts/Fraunces-VariableFont_SOFT,WONK,opsz,wght.ttf",font_size)
+    font = ImageFont.truetype("fonts/seguiemj.ttf",font_size,encoding = 'unic')
     draw.text((width*.1,height*.8),username,font=font)
-    draw.text((184,158),newText,font=font)
+    #newText = "\U0001F600"
+    draw.text((184,158),newText,font = font,embedded_color=True)
     
     image.paste(output,(width-334,height-347),output)
 
@@ -89,13 +93,13 @@ def createImage(text,username,userprofile,backgroundImage):
     filename = ''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for _ in range(32))
     image = image.resize((600,400),Image.ANTIALIAS)
     image.save(filename+'.png')
-    res = api.media_upload(filename+'.png')
+    #res = api.media_upload(filename+'.png')
     os.remove(filename+'.png')
-        
+    image.show()    
     return [res.media_id]
     
-#print(2)
-#createImage('Caso eu venha a falecer, gostaria de deixar registrado aqui tambm que tenho interesse em ser doador de e tecidos.','fagnernunes11','https://pbs.twimg.com/profile_images/1251218278191640576/UpID8lrn_400x400.jpg','images/image1.png')
+
+createImage('Caso eu venha a \U0001F600 falecer, gostaria de deixar registrado aqui tambm que tenho interesse em ser doador de e tecidos.','fagnernunes11','https://pbs.twimg.com/profile_images/1251218278191640576/UpID8lrn_400x400.jpg','images/image1.png')
 
 def postAtweet(media_id,token,oauth_consumer_secret, oauth_token_secret,status,in_reply_to_status_id,oauth_consumer_key,oauth_token):
     
@@ -151,7 +155,7 @@ def getMentions():
 starttime = time.time()
 i = 0
 while True:
-    getMentions()
+    #getMentions()
     i+=1
     
     time.sleep(90 - ((time.time() - starttime) % 60.0))
