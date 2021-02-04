@@ -82,9 +82,9 @@ def createImage(text,username,userprofile,backgroundImage):
     
     draw = ImageDraw.Draw(image)
 
-    font = ImageFont.truetype("fonts/seguiemj.ttf",font_size,encoding = 'unic')
+    font = ImageFont.truetype("fonts/NotoEmoji.ttf",40,encoding = 'unic')
     draw.text((width*.1,height*.8),username,font=font)
-    #newText = "\U0001F600"
+    newText = "\U0001F926 \U000200D \U0002642 \U000FE0F"
     draw.text((184,158),newText,font = font,embedded_color=True)
     
     image.paste(output,(width-334,height-347),output)
